@@ -152,7 +152,7 @@ function AcademyDashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground lg:flex">
       {sidebarOpen && <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-foreground/30 lg:hidden" />}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+     <aside className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-[82px] items-center justify-between border-b border-sidebar-border px-6">
           <div><div className="text-xl font-bold">QIMURO<span className="text-primary">.</span></div><div className="mt-1 text-[10px] text-muted-foreground">ACADEMY</div></div>
           <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X /></Button>
