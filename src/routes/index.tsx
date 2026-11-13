@@ -4,6 +4,7 @@ import {
   Activity,
   ArrowUpRight,
   Bell,
+  BellRing,
   BookOpen,
   CheckCircle2,
   ChevronRight,
@@ -11,16 +12,23 @@ import {
   Code2,
   Cpu,
   Database,
+  Eye,
+  FileCode2,
   FolderGit2,
+  GitBranch,
   LayoutDashboard,
   Menu,
   Network,
   Plus,
   RefreshCw,
   Search,
+  Send,
   Server,
+  Settings2,
   ShieldCheck,
   Terminal,
+  UserPlus,
+  Users,
   Wifi,
   WifiOff,
   X,
@@ -53,14 +61,31 @@ const resources = [
   { name: "AI Model Deployment Guide", type: "Technical resource", size: "8 MB", access: "Internet required for updates", local: false },
 ];
 
+const demoCollaborators = [
+  { id: "amina", name: "Amina Hassan", location: "Isiolo, Kenya", role: "Project Lead", skills: ["Product design", "Python", "Agriculture"] },
+  { id: "fatuma", name: "Fatuma Ahmed", location: "Mumias, Kenya", role: "AI Engineer", skills: ["Python", "Machine learning", "Computer vision"] },
+  { id: "musa", name: "Musa Otieno", location: "Nairobi, Kenya", role: "Backend Developer", skills: ["TypeScript", "APIs", "Databases"] },
+  { id: "jane", name: "Jane Muthoni", location: "Makueni, Kenya", role: "Infrastructure Contributor", skills: ["Linux", "Networking", "Cloud infrastructure"] },
+];
+
+const demoNotifications = [
+  { id: "invite", title: "Project invitation", detail: "Open Agricultural Intelligence Platform · Demo invite", read: false },
+  { id: "connection", title: "Connection request", detail: "Musa Otieno · Demo profile from Nairobi", read: false },
+  { id: "task", title: "Task assigned", detail: "Review the crop image dataset · Demo project activity", read: true },
+  { id: "sync", title: "Sync status", detail: "Local project changes are pending a simulated sync", read: true },
+];
+
 const navigation = [
-  { label: "Overview", icon: LayoutDashboard },
-  { label: "Workspaces", icon: Terminal },
-  { label: "Projects", icon: FolderGit2 },
-  { label: "Engineering pathways", icon: BookOpen },
-  { label: "Resources", icon: Database },
+  { label: "Dashboard", icon: LayoutDashboard },
+  { label: "My Workspace", icon: Terminal },
+  { label: "My Projects", icon: FolderGit2 },
+  { label: "Collaboration", icon: Users },
   { label: "Infrastructure", icon: Server },
+  { label: "Engineering Pathways", icon: BookOpen },
+  { label: "Resources", icon: Database },
   { label: "Network", icon: Network },
+  { label: "Notifications", icon: BellRing },
+  { label: "Settings", icon: Settings2 },
 ];
 
 const accessOptions = [
@@ -77,7 +102,7 @@ export const Route = createFileRoute("/")({
       { title: "Qimuro Academy | Your Engineering Workspace" },
       { name: "description", content: "A personal engineering workspace for building practical technology with your own device, optional shared infrastructure, and portable resources." },
       { property: "og:title", content: "Qimuro Academy | Your Engineering Workspace" },
-      { property: "og:description", content: "Build practical technology across personal devices, optional community infrastructure, and institutions." },
+      { property: "og:description", content: "Access engineering tools, infrastructure, and distributed collaborators across personal devices, communities, and institutions." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -86,7 +111,7 @@ export const Route = createFileRoute("/")({
 });
 
 function AcademyDashboard() {
-  const [activePage, setActivePage] = useState("Overview");
+  const [activePage, setActivePage] = useState("Dashboard");
   const [online, setOnline] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState("");
@@ -152,7 +177,7 @@ function AcademyDashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground lg:flex">
       {sidebarOpen && <button aria-label="Close navigation" onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-40 bg-foreground/30 lg:hidden" />}
-     <aside className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col overflow-y-auto bg-sidebar text-sidebar-foreground transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-[82px] items-center justify-between border-b border-sidebar-border px-6">
           <div><div className="text-xl font-bold">QIMURO<span className="text-primary">.</span></div><div className="mt-1 text-[10px] text-muted-foreground">ACADEMY</div></div>
           <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Close navigation" onClick={() => setSidebarOpen(false)}><X /></Button>
@@ -179,13 +204,13 @@ function AcademyDashboard() {
         </header>
 
         <div className="mx-auto max-w-[1500px] space-y-7 p-4 md:p-8">
-          {activePage === "Overview" && <>
+          {activePage === "Dashboard" && <>
             <section className="flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><div className="text-xs font-semibold uppercase text-primary">Your engineering workspace</div><h1 className="mt-2 max-w-3xl text-2xl font-semibold md:text-3xl">Your environment. Your tools. Your engineering journey.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Access the resources and computing environments you need to design, build, test and deploy technology. Start with your own computer; shared infrastructure is optional.</p></div><Button onClick={() => setWorkspaceOpen(true)} className="h-11"><Terminal size={17} />Open workspace preview</Button></section>
             {!online && <div className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/10 p-4"><WifiOff size={19} className="mt-0.5 text-warning" /><div><div className="text-sm font-semibold">Offline mode · demo</div><p className="mt-1 text-xs leading-5 text-muted-foreground">Resources marked available locally remain listed. Remote computing and updates are unavailable; synchronization is pending. Local execution is not connected in this prototype.</p></div></div>}
 
             <section aria-label="Access choices"><div className="mb-4"><h2 className="text-base font-semibold">Choose how you work</h2><p className="mt-1 text-xs text-muted-foreground">Use your own device, or explore optional shared environments.</p></div><div className="grid gap-3 md:grid-cols-3">{accessOptions.map(({ id, title, detail, badge, icon: Icon }) => <div key={id} className={`rounded-md border bg-card p-4 ${accessMode === id ? "border-primary" : "border-border"}`}><div className="flex items-start justify-between gap-3"><span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={18} /></span><span className="text-right text-[10px] text-muted-foreground">{badge}</span></div><h3 className="mt-3 text-sm font-semibold">{title}</h3><p className="mt-1 min-h-10 text-xs leading-5 text-muted-foreground">{detail}</p><Button variant={accessMode === id ? "secondary" : "outline"} size="sm" className="mt-3 w-full" onClick={() => selectAccess(id)}>{accessMode === id ? "Selected for this demo" : id === "device" ? "Choose this option" : "Explore option"}</Button></div>)}</div><p className="mt-2 text-[10px] text-muted-foreground">Demo choices only · No computer, node, institution or remote service is connected.</p></section>
 
-            <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{[{ label: "My demo workspaces", value: "04", detail: "Personal environment examples", icon: Terminal }, { label: "My demo projects", value: String(projects.length).padStart(2, "0"), detail: "Illustrative project list", icon: FolderGit2 }, { label: "Local resources", value: String(resources.filter((resource) => resource.local).length).padStart(2, "0"), detail: "Marked available offline", icon: Database }, { label: "Pilot nodes", value: "03", detail: "Illustrative, not live deployments", icon: Network }].map(({ label, value, detail, icon: Icon }) => <div key={label} className="rounded-md border border-border bg-card p-4 md:p-5"><div className="flex items-start justify-between gap-2"><span className="text-xs text-muted-foreground">{label}</span><Icon size={17} className="shrink-0 text-primary" /></div><div className="mt-3 text-2xl font-semibold">{value}</div><div className="mt-2 text-[10px] leading-4 text-muted-foreground">{detail}</div></div>)}</section>
+            <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{[{ label: "My demo workspaces", value: "04", detail: "Personal environment examples", icon: Terminal }, { label: "My demo projects", value: String(projects.length).padStart(2, "0"), detail: "Illustrative project list", icon: FolderGit2 }, { label: "Local resources", value: String(resources.filter((resource) => resource.local).length).padStart(2, "0"), detail: "Marked available offline", icon: Database }, { label: "Demo connections", value: "03", detail: "Illustrative sample profiles", icon: Users }].map(({ label, value, detail, icon: Icon }) => <div key={label} className="rounded-md border border-border bg-card p-4 md:p-5"><div className="flex items-start justify-between gap-2"><span className="text-xs text-muted-foreground">{label}</span><Icon size={17} className="shrink-0 text-primary" /></div><div className="mt-3 text-2xl font-semibold">{value}</div><div className="mt-2 text-[10px] leading-4 text-muted-foreground">{detail}</div></div>)}</section>
 
             <section className="grid grid-cols-1 gap-5 xl:grid-cols-3"><div className="rounded-md border border-border bg-card p-5 md:p-6 xl:col-span-2"><div className="flex items-center justify-between gap-3"><div><h2 className="text-base font-semibold">My workspaces</h2><p className="mt-1 text-xs text-muted-foreground">Local-first development environment examples</p></div><span className="rounded-full bg-secondary px-3 py-1.5 text-[10px] text-secondary-foreground">Demo availability</span></div><div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">{[{ name: "Software development", sub: "Personal device · demo", icon: Code2 }, { name: "Python & AI", sub: "Personal device · demo", icon: Cpu }, { name: "Backend tools", sub: "Local environment · demo", icon: Server }, { name: "Database tools", sub: "Local environment · demo", icon: Database }].map(({ name, sub, icon: Icon }) => <Button variant="outline" key={name} onClick={() => setWorkspaceOpen(true)} className="h-auto min-h-32 flex-col items-start justify-start whitespace-normal p-4 text-left"><span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={18} /></span><span className="mt-3 text-sm font-semibold">{name}</span><span className="text-[11px] text-muted-foreground">{sub}</span></Button>)}</div><div className="mt-5 flex flex-col justify-between gap-3 rounded-md bg-secondary p-4 sm:flex-row sm:items-center"><div className="flex items-center gap-3"><Activity size={18} className="text-primary" /><div><div className="text-xs font-semibold">Environment availability</div><div className="mt-1 text-[11px] text-muted-foreground">Device-local and remote services are not connected in this prototype.</div></div></div><span className="text-xs font-medium text-primary">Illustrative</span></div></div>
               <div className="rounded-md bg-sidebar p-5 text-sidebar-foreground md:p-6"><div className="flex items-center justify-between"><h2 className="text-base font-semibold">Compute and infrastructure</h2><Server size={19} className="text-primary" /></div><p className="mt-1 text-xs leading-5 text-muted-foreground">Resources may come from you or a connected partner; Qimuro does not provide every resource.</p><div className="mt-5 space-y-4">{[{ label: "Personal device", status: "Your own resources" }, { label: "Community node", status: "Optional · illustrative" }, { label: "Institutional infrastructure", status: "Optional · illustrative" }, { label: "Shared remote computing", status: "Proposed · not connected" }].map((item) => <div key={item.label} className="border-b border-sidebar-border pb-3 last:border-0"><div className="text-xs font-medium">{item.label}</div><div className="mt-1 text-[10px] text-muted-foreground">{item.status}</div></div>)}</div><div className="mt-3 text-[10px] text-muted-foreground">No live capacity or uptime is being reported.</div></div>
@@ -193,15 +218,22 @@ function AcademyDashboard() {
 
             <PathwaySection onSelect={setSelectedPathway} onExplore={() => setActivePage("Engineering pathways")} />
             <ProjectSection projects={filteredProjects} search={search} setSearch={setSearch} onCreate={() => setNewProjectOpen(true)} />
+            <CollaborationPreview onView={() => setActivePage("Collaboration")} />
             <ResourcePreview online={online} onView={() => setActivePage("Resources")} />
             <NodePreview nodes={visibleNodes} selectedNode={selectedNode} onSelect={(name) => { setSelectedNode(name); setAccessMode("node"); notify(`${name} is an illustrative pilot, not a live connection.`); }} onView={() => setActivePage("Network")} />
           </>}
 
-          {activePage === "Workspaces" && <section><SectionHeading title="My engineering workspaces" description="Personal-device-first environments with optional shared resources." /><div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{[{ name: "Software Development", location: "Your device · demo", icon: Code2 }, { name: "Python & AI", location: "Your device · demo", icon: Cpu }, { name: "Backend Development", location: "Local environment · demo", icon: Terminal }, { name: "Database Environment", location: "Local environment · demo", icon: Database }].map(({ name, location, icon: Icon }) => <div key={name} className="rounded-md border border-border bg-card p-5"><div className="flex items-center justify-between"><span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={19} /></span><span className="text-right text-[10px] text-muted-foreground">Demo only</span></div><h3 className="mt-4 font-semibold">{name}</h3><p className="mt-2 text-xs text-muted-foreground">A practical environment example; not connected to a running computer.</p><div className="mt-2 text-[10px] text-muted-foreground">{location}</div><Button onClick={() => setWorkspaceOpen(true)} className="mt-5 w-full">View environment preview<ArrowUpRight size={13} /></Button></div>)}</div><div className="mt-5 rounded-md border border-border p-5"><h2 className="font-semibold">Connect your tools</h2><p className="mt-2 text-sm text-muted-foreground">Connecting personal development tools is a planned capability. This demo does not access your device or accounts.</p></div></section>}
+          {activePage === "My Workspace" && <section><SectionHeading title="My engineering workspaces" description="Personal-device-first environments with optional shared resources." /><div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{[{ name: "Software Development", location: "Your device · demo", icon: Code2 }, { name: "Python & AI", location: "Your device · demo", icon: Cpu }, { name: "Backend Development", location: "Local environment · demo", icon: Terminal }, { name: "Database Environment", location: "Local environment · demo", icon: Database }].map(({ name, location, icon: Icon }) => <div key={name} className="rounded-md border border-border bg-card p-5"><div className="flex items-center justify-between"><span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={19} /></span><span className="text-right text-[10px] text-muted-foreground">Demo only</span></div><h3 className="mt-4 font-semibold">{name}</h3><p className="mt-2 text-xs text-muted-foreground">A practical environment example; not connected to a running computer.</p><div className="mt-2 text-[10px] text-muted-foreground">{location}</div><Button onClick={() => setWorkspaceOpen(true)} className="mt-5 w-full">View environment preview<ArrowUpRight size={13} /></Button></div>)}</div><div className="mt-5 rounded-md border border-border p-5"><h2 className="font-semibold">Connect your tools</h2><p className="mt-2 text-sm text-muted-foreground">Connecting personal development tools is a planned capability. This demo does not access your device or accounts.</p></div></section>}
 
-          {activePage === "Projects" && <ProjectSection projects={filteredProjects} search={search} setSearch={setSearch} onCreate={() => setNewProjectOpen(true)} full />}
+          {activePage === "My Projects" && <ProjectSection projects={filteredProjects} search={search} setSearch={setSearch} onCreate={() => setNewProjectOpen(true)} full />}
 
-          {activePage === "Engineering pathways" && <PathwaySection onSelect={setSelectedPathway} />}
+          {activePage === "Engineering Pathways" && <PathwaySection onSelect={setSelectedPathway} />}
+
+          {activePage === "Collaboration" && <CollaborationPage onNotify={notify} />}
+
+          {activePage === "Notifications" && <NotificationsPage onNotify={notify} />}
+
+          {activePage === "Settings" && <SettingsPage onNotify={notify} />}
 
           {activePage === "Resources" && <section><SectionHeading title="Technical resources" description="Reference material, development templates and tools; availability shown per item." /><div className="mt-6 divide-y divide-border rounded-md border border-border bg-card">{resources.map((resource) => <div key={resource.name} className="flex items-center justify-between gap-3 p-4 md:p-5"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Database size={18} /></span><div className="min-w-0"><div className="text-sm font-semibold">{resource.name}</div><div className="mt-1 text-xs text-muted-foreground">{resource.type} · {resource.size}</div></div></div><span className={`shrink-0 text-right text-[10px] ${resource.local ? "text-primary" : "text-warning"}`}>{online ? resource.access : resource.local ? "Available locally · demo" : "Requires internet"}</span></div>)}</div><p className="mt-3 text-[10px] text-muted-foreground">Illustrative resource list · local availability is not verified against a real device.</p></section>}
 
