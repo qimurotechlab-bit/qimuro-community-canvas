@@ -34,6 +34,7 @@ import {
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 const nodes = [
   { name: "Kitise pilot node", location: "Kitise, Makueni", status: "Online", capacity: "8 / 12", sync: "Recently", type: "Illustrative community pilot" },
@@ -61,18 +62,18 @@ const resources = [
   { name: "AI Model Deployment Guide", type: "Technical resource", size: "8 MB", access: "Internet required for updates", local: false },
 ];
 
-const demoCollaborators = [
+const sampleCollaborators = [
   { id: "amina", name: "Amina Hassan", location: "Isiolo, Kenya", role: "Project Lead", skills: ["Product design", "Python", "Agriculture"] },
   { id: "fatuma", name: "Fatuma Ahmed", location: "Mumias, Kenya", role: "AI Engineer", skills: ["Python", "Machine learning", "Computer vision"] },
   { id: "musa", name: "Musa Otieno", location: "Nairobi, Kenya", role: "Backend Developer", skills: ["TypeScript", "APIs", "Databases"] },
   { id: "jane", name: "Jane Muthoni", location: "Makueni, Kenya", role: "Infrastructure Contributor", skills: ["Linux", "Networking", "Cloud infrastructure"] },
 ];
 
-const demoNotifications = [
-  { id: "invite", title: "Project invitation", detail: "Open Agricultural Intelligence Platform · Demo invite", read: false },
-  { id: "connection", title: "Connection request", detail: "Musa Otieno · Demo profile from Nairobi", read: false },
-  { id: "task", title: "Task assigned", detail: "Review the crop image dataset · Demo project activity", read: true },
-  { id: "sync", title: "Sync status", detail: "Local project changes are pending a simulated sync", read: true },
+const sampleNotifications = [
+  { id: "invite", title: "Project invitation", detail: "Open Agricultural Intelligence Platform · Illustrative invitation", read: false },
+  { id: "connection", title: "Connection request", detail: "Musa Otieno · Illustrative profile from Nairobi", read: false },
+  { id: "task", title: "Task assigned", detail: "Review the crop image dataset · Sample project activity", read: true },
+  { id: "sync", title: "Sync status", detail: "Local project changes are pending synchronization", read: true },
 ];
 
 const navigation = [
@@ -125,6 +126,28 @@ function AcademyDashboard() {
   const [projects, setProjects] = useState(initialProjects);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  const [collaborationView, setCollaborationView] = useState("Discover people");
+  const [peopleQuery, setPeopleQuery] = useState("");
+  const [peopleFilter, setPeopleFilter] = useState("");
+  const [connectionStatuses, setConnectionStatuses] = useState<Record<string, "Connect" | "Requested" | "Connected">>({
+    musa: "Connected",
+    amina: "Connected",
+    jane: "Connect",
+  });
+  const [joinRequested, setJoinRequested] = useState(false);
+  const [joinAccepted, setJoinAccepted] = useState(false);
+  const [projectInviteAccepted, setProjectInviteAccepted] = useState(false);
+  const [projectVisibility, setProjectVisibility] = useState("Public");
+  const [sharedTaskDone, setSharedTaskDone] = useState(false);
+  const [discussion, setDiscussion] = useState("");
+  const [discussionPosts, setDiscussionPosts] = useState<string[]>([
+    "Amina: Let’s compare seasonal image samples from different regions.",
+    "Fatuma: I can review the crop-image model and prepare an evaluation set.",
+  ]);
+  const [profileVisibility, setProfileVisibility] = useState(true);
+  const [connectionRequests, setConnectionRequests] = useState(true);
+  const [projectInvitations, setProjectInvitations] = useState(true);
+  const [notifications, setNotifications] = useState(sampleNotifications);
 
   const notify = (message: string) => {
     setNotification(message);
@@ -138,11 +161,11 @@ function AcademyDashboard() {
       return;
     }
     setSyncing(true);
-    setSyncLabel("Demo sync in progress");
+    setSyncLabel("Synchronization simulation in progress");
     window.setTimeout(() => {
       setSyncing(false);
-      setSyncLabel("Demo sync complete · just now");
-      notify("Demo sync completed. No live services were contacted.");
+      setSyncLabel("Sync simulated · just now");
+      notify("Synchronization simulated. No live services were contacted.");
     }, 900);
   };
 
@@ -151,6 +174,13 @@ function AcademyDashboard() {
     status: !online && node.name === selectedNode ? "Offline" : node.status,
   }));
   const filteredProjects = projects.filter((project) => project.name.toLowerCase().includes(search.toLowerCase()));
+  const unreadNotifications = notifications.filter((item) => !item.read).length;
+  const filteredPeople = sampleCollaborators.filter((person) => {
+    const query = peopleQuery.trim().toLowerCase();
+    const matchesQuery = !query || [person.name, person.location, ...person.skills].some((value) => value.toLowerCase().includes(query));
+    const matchesFilter = !peopleFilter || person.skills.some((skill) => skill.toLowerCase().includes(peopleFilter.toLowerCase())) || person.location.toLowerCase().includes(peopleFilter.toLowerCase());
+    return matchesQuery && matchesFilter;
+  });
 
   const selectAccess = (mode: AccessMode) => {
     setAccessMode(mode);
@@ -171,7 +201,7 @@ function AcademyDashboard() {
     setProjects((current) => [{ name, category: "Personal project", language: "Not selected", progress: 0, updated: "Just created", status: "In progress" }, ...current]);
     setNewProjectName("");
     setNewProjectOpen(false);
-    notify("Demo project added to your workspace.");
+    notify("Project added to this page. It is not saved to an account.");
   };
 
   return (
@@ -200,19 +230,19 @@ function AcademyDashboard() {
       <main className="min-w-0 flex-1">
         <header className="sticky top-0 z-30 flex min-h-[82px] items-center justify-between gap-3 border-b border-border bg-card px-4 md:px-8">
           <div className="flex items-center gap-3"><Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}><Menu /></Button><div><div className="text-sm font-semibold">{activePage}</div><div className="mt-1 text-xs text-muted-foreground">Qimuro Academy / {activePage}</div></div></div>
-          <div className="flex items-center gap-2 md:gap-5"><span className={`hidden items-center gap-2 rounded-full px-3 py-2 text-xs sm:flex ${online ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>{online ? <Wifi size={14} /> : <WifiOff size={14} />}{online ? "Connected" : "Offline mode"}</span><Button variant="ghost" size="icon" aria-label="Notifications" onClick={() => notify("No new demo notifications.")}><Bell size={19} /></Button><span className="hidden text-xs text-muted-foreground md:inline">Individual workspace · Demo</span></div>
+          <div className="flex items-center gap-2 md:gap-5"><span className={`hidden items-center gap-2 rounded-full px-3 py-2 text-xs sm:flex ${online ? "bg-primary/10 text-primary" : "bg-warning/10 text-warning"}`}>{online ? <Wifi size={14} /> : <WifiOff size={14} />}{online ? "Connected" : "Offline mode"}</span><Button variant="ghost" size="icon" aria-label={`Notifications${unreadNotifications ? `, ${unreadNotifications} unread` : ""}`} onClick={() => setActivePage("Notifications")} className="relative"><Bell size={19} />{unreadNotifications > 0 && <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground">{unreadNotifications}</span>}</Button><span className="hidden text-xs text-muted-foreground md:inline">Individual workspace</span></div>
         </header>
 
         <div className="mx-auto max-w-[1500px] space-y-7 p-4 md:p-8">
           {activePage === "Dashboard" && <>
             <section className="flex flex-col justify-between gap-4 md:flex-row md:items-end"><div><div className="text-xs font-semibold uppercase text-primary">Your engineering workspace</div><h1 className="mt-2 max-w-3xl text-2xl font-semibold md:text-3xl">Your environment. Your tools. Your engineering journey.</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">Access the resources and computing environments you need to design, build, test and deploy technology. Start with your own computer; shared infrastructure is optional.</p></div><Button onClick={() => setWorkspaceOpen(true)} className="h-11"><Terminal size={17} />Open workspace preview</Button></section>
-            {!online && <div className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/10 p-4"><WifiOff size={19} className="mt-0.5 text-warning" /><div><div className="text-sm font-semibold">Offline mode · demo</div><p className="mt-1 text-xs leading-5 text-muted-foreground">Resources marked available locally remain listed. Remote computing and updates are unavailable; synchronization is pending. Local execution is not connected in this prototype.</p></div></div>}
+            {!online && <div className="flex items-start gap-3 rounded-md border border-warning/30 bg-warning/10 p-4"><WifiOff size={19} className="mt-0.5 text-warning" /><div><div className="text-sm font-semibold">Offline mode</div><p className="mt-1 text-xs leading-5 text-muted-foreground">Resources marked available locally remain listed. Remote computing and updates are unavailable; synchronization is pending. Local execution is not connected in this prototype.</p></div></div>}
 
-            <section aria-label="Access choices"><div className="mb-4"><h2 className="text-base font-semibold">Choose how you work</h2><p className="mt-1 text-xs text-muted-foreground">Use your own device, or explore optional shared environments.</p></div><div className="grid gap-3 md:grid-cols-3">{accessOptions.map(({ id, title, detail, badge, icon: Icon }) => <div key={id} className={`rounded-md border bg-card p-4 ${accessMode === id ? "border-primary" : "border-border"}`}><div className="flex items-start justify-between gap-3"><span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={18} /></span><span className="text-right text-[10px] text-muted-foreground">{badge}</span></div><h3 className="mt-3 text-sm font-semibold">{title}</h3><p className="mt-1 min-h-10 text-xs leading-5 text-muted-foreground">{detail}</p><Button variant={accessMode === id ? "secondary" : "outline"} size="sm" className="mt-3 w-full" onClick={() => selectAccess(id)}>{accessMode === id ? "Selected for this demo" : id === "device" ? "Choose this option" : "Explore option"}</Button></div>)}</div><p className="mt-2 text-[10px] text-muted-foreground">Demo choices only · No computer, node, institution or remote service is connected.</p></section>
+            <section aria-label="Access choices"><div className="mb-4"><h2 className="text-base font-semibold">Choose how you work</h2><p className="mt-1 text-xs text-muted-foreground">Use your own device, or explore optional shared environments.</p></div><div className="grid gap-3 md:grid-cols-3">{accessOptions.map(({ id, title, detail, badge, icon: Icon }) => <div key={id} className={`rounded-md border bg-card p-4 ${accessMode === id ? "border-primary" : "border-border"}`}><div className="flex items-start justify-between gap-3"><span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={18} /></span><span className="text-right text-[10px] text-muted-foreground">{badge}</span></div><h3 className="mt-3 text-sm font-semibold">{title}</h3><p className="mt-1 min-h-10 text-xs leading-5 text-muted-foreground">{detail}</p><Button variant={accessMode === id ? "secondary" : "outline"} size="sm" className="mt-3 w-full" onClick={() => selectAccess(id)}>{accessMode === id ? "Selected" : id === "device" ? "Choose this option" : "Explore option"}</Button></div>)}</div><p className="mt-2 text-[10px] text-muted-foreground">Interactive access preview · No computer, node, institution or remote service is connected.</p></section>
 
-            <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{[{ label: "My demo workspaces", value: "04", detail: "Personal environment examples", icon: Terminal }, { label: "My demo projects", value: String(projects.length).padStart(2, "0"), detail: "Illustrative project list", icon: FolderGit2 }, { label: "Local resources", value: String(resources.filter((resource) => resource.local).length).padStart(2, "0"), detail: "Marked available offline", icon: Database }, { label: "Demo connections", value: "03", detail: "Illustrative sample profiles", icon: Users }].map(({ label, value, detail, icon: Icon }) => <div key={label} className="rounded-md border border-border bg-card p-4 md:p-5"><div className="flex items-start justify-between gap-2"><span className="text-xs text-muted-foreground">{label}</span><Icon size={17} className="shrink-0 text-primary" /></div><div className="mt-3 text-2xl font-semibold">{value}</div><div className="mt-2 text-[10px] leading-4 text-muted-foreground">{detail}</div></div>)}</section>
+            <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">{[{ label: "My workspaces", value: "04", detail: "Illustrative personal environments", icon: Terminal }, { label: "My projects", value: String(projects.length).padStart(2, "0"), detail: "Illustrative project list", icon: FolderGit2 }, { label: "Local resources", value: String(resources.filter((resource) => resource.local).length).padStart(2, "0"), detail: "Marked available offline", icon: Database }, { label: "Connections", value: "03", detail: "Illustrative sample profiles", icon: Users }].map(({ label, value, detail, icon: Icon }) => <div key={label} className="rounded-md border border-border bg-card p-4 md:p-5"><div className="flex items-start justify-between gap-2"><span className="text-xs text-muted-foreground">{label}</span><Icon size={17} className="shrink-0 text-primary" /></div><div className="mt-3 text-2xl font-semibold">{value}</div><div className="mt-2 text-[10px] leading-4 text-muted-foreground">{detail}</div></div>)}</section>
 
-            <section className="grid grid-cols-1 gap-5 xl:grid-cols-3"><div className="rounded-md border border-border bg-card p-5 md:p-6 xl:col-span-2"><div className="flex items-center justify-between gap-3"><div><h2 className="text-base font-semibold">My workspaces</h2><p className="mt-1 text-xs text-muted-foreground">Local-first development environment examples</p></div><span className="rounded-full bg-secondary px-3 py-1.5 text-[10px] text-secondary-foreground">Demo availability</span></div><div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">{[{ name: "Software development", sub: "Personal device · demo", icon: Code2 }, { name: "Python & AI", sub: "Personal device · demo", icon: Cpu }, { name: "Backend tools", sub: "Local environment · demo", icon: Server }, { name: "Database tools", sub: "Local environment · demo", icon: Database }].map(({ name, sub, icon: Icon }) => <Button variant="outline" key={name} onClick={() => setWorkspaceOpen(true)} className="h-auto min-h-32 flex-col items-start justify-start whitespace-normal p-4 text-left"><span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={18} /></span><span className="mt-3 text-sm font-semibold">{name}</span><span className="text-[11px] text-muted-foreground">{sub}</span></Button>)}</div><div className="mt-5 flex flex-col justify-between gap-3 rounded-md bg-secondary p-4 sm:flex-row sm:items-center"><div className="flex items-center gap-3"><Activity size={18} className="text-primary" /><div><div className="text-xs font-semibold">Environment availability</div><div className="mt-1 text-[11px] text-muted-foreground">Device-local and remote services are not connected in this prototype.</div></div></div><span className="text-xs font-medium text-primary">Illustrative</span></div></div>
+            <section className="grid grid-cols-1 gap-5 xl:grid-cols-3"><div className="rounded-md border border-border bg-card p-5 md:p-6 xl:col-span-2"><div className="flex items-center justify-between gap-3"><div><h2 className="text-base font-semibold">My workspaces</h2><p className="mt-1 text-xs text-muted-foreground">Local-first development environment examples</p></div><span className="rounded-full bg-secondary px-3 py-1.5 text-[10px] text-secondary-foreground">Available · illustrative</span></div><div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">{[{ name: "Software development", sub: "Personal device · example", icon: Code2 }, { name: "Python & AI", sub: "Personal device · example", icon: Cpu }, { name: "Backend tools", sub: "Local environment · example", icon: Server }, { name: "Database tools", sub: "Local environment · example", icon: Database }].map(({ name, sub, icon: Icon }) => <Button variant="outline" key={name} onClick={() => setWorkspaceOpen(true)} className="h-auto min-h-32 flex-col items-start justify-start whitespace-normal p-4 text-left"><span className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={18} /></span><span className="mt-3 text-sm font-semibold">{name}</span><span className="text-[11px] text-muted-foreground">{sub}</span></Button>)}</div><div className="mt-5 flex flex-col justify-between gap-3 rounded-md bg-secondary p-4 sm:flex-row sm:items-center"><div className="flex items-center gap-3"><Activity size={18} className="text-primary" /><div><div className="text-xs font-semibold">Environment availability</div><div className="mt-1 text-[11px] text-muted-foreground">Device-local and remote services are not connected in this prototype.</div></div></div><span className="text-xs font-medium text-primary">Illustrative</span></div></div>
               <div className="rounded-md bg-sidebar p-5 text-sidebar-foreground md:p-6"><div className="flex items-center justify-between"><h2 className="text-base font-semibold">Compute and infrastructure</h2><Server size={19} className="text-primary" /></div><p className="mt-1 text-xs leading-5 text-muted-foreground">Resources may come from you or a connected partner; Qimuro does not provide every resource.</p><div className="mt-5 space-y-4">{[{ label: "Personal device", status: "Your own resources" }, { label: "Community node", status: "Optional · illustrative" }, { label: "Institutional infrastructure", status: "Optional · illustrative" }, { label: "Shared remote computing", status: "Proposed · not connected" }].map((item) => <div key={item.label} className="border-b border-sidebar-border pb-3 last:border-0"><div className="text-xs font-medium">{item.label}</div><div className="mt-1 text-[10px] text-muted-foreground">{item.status}</div></div>)}</div><div className="mt-3 text-[10px] text-muted-foreground">No live capacity or uptime is being reported.</div></div>
             </section>
 
@@ -223,17 +253,17 @@ function AcademyDashboard() {
             <NodePreview nodes={visibleNodes} selectedNode={selectedNode} onSelect={(name) => { setSelectedNode(name); setAccessMode("node"); notify(`${name} is an illustrative pilot, not a live connection.`); }} onView={() => setActivePage("Network")} />
           </>}
 
-          {activePage === "My Workspace" && <section><SectionHeading title="My engineering workspaces" description="Personal-device-first environments with optional shared resources." /><div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{[{ name: "Software Development", location: "Your device · demo", icon: Code2 }, { name: "Python & AI", location: "Your device · demo", icon: Cpu }, { name: "Backend Development", location: "Local environment · demo", icon: Terminal }, { name: "Database Environment", location: "Local environment · demo", icon: Database }].map(({ name, location, icon: Icon }) => <div key={name} className="rounded-md border border-border bg-card p-5"><div className="flex items-center justify-between"><span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={19} /></span><span className="text-right text-[10px] text-muted-foreground">Demo only</span></div><h3 className="mt-4 font-semibold">{name}</h3><p className="mt-2 text-xs text-muted-foreground">A practical environment example; not connected to a running computer.</p><div className="mt-2 text-[10px] text-muted-foreground">{location}</div><Button onClick={() => setWorkspaceOpen(true)} className="mt-5 w-full">View environment preview<ArrowUpRight size={13} /></Button></div>)}</div><div className="mt-5 rounded-md border border-border p-5"><h2 className="font-semibold">Connect your tools</h2><p className="mt-2 text-sm text-muted-foreground">Connecting personal development tools is a planned capability. This demo does not access your device or accounts.</p></div></section>}
+          {activePage === "My Workspace" && <section><SectionHeading title="My engineering workspaces" description="Personal-device-first environments with optional shared resources." /><div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">{[{ name: "Software Development", location: "Your device · example", icon: Code2 }, { name: "Python & AI", location: "Your device · example", icon: Cpu }, { name: "Backend Development", location: "Local environment · example", icon: Terminal }, { name: "Database Environment", location: "Local environment · example", icon: Database }].map(({ name, location, icon: Icon }) => <div key={name} className="rounded-md border border-border bg-card p-5"><div className="flex items-center justify-between"><span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={19} /></span><span className="text-right text-[10px] text-muted-foreground">Example environment</span></div><h3 className="mt-4 font-semibold">{name}</h3><p className="mt-2 text-xs text-muted-foreground">A practical environment example; not connected to a running computer.</p><div className="mt-2 text-[10px] text-muted-foreground">{location}</div><Button onClick={() => setWorkspaceOpen(true)} className="mt-5 w-full">View environment preview<ArrowUpRight size={13} /></Button></div>)}</div><div className="mt-5 rounded-md border border-border p-5"><h2 className="font-semibold">Connect your tools</h2><p className="mt-2 text-sm text-muted-foreground">Connecting personal development tools is a planned capability. This interface does not access your device or accounts.</p></div></section>}
 
-          {activePage === "My Projects" && <ProjectSection projects={filteredProjects} search={search} setSearch={setSearch} onCreate={() => setNewProjectOpen(true)} full />}
+          {activePage === "My Projects" && <ProjectsPage projects={filteredProjects} search={search} setSearch={setSearch} onCreate={() => setNewProjectOpen(true)} onOpenCollaboration={() => setActivePage("Collaboration")} />}
 
           {activePage === "Engineering Pathways" && <PathwaySection onSelect={setSelectedPathway} />}
 
           {activePage === "Collaboration" && <CollaborationPage onNotify={notify} />}
 
-          {activePage === "Notifications" && <NotificationsPage onNotify={notify} />}
+          {activePage === "Notifications" && <NotificationsPage notifications={notifications} onMarkRead={(id) => setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item))} onMarkAllRead={() => setNotifications((current) => current.map((item) => ({ ...item, read: true })))} onNotify={notify} />}
 
-          {activePage === "Settings" && <SettingsPage onNotify={notify} />}
+          {activePage === "Settings" && <SettingsPage profileVisibility={profileVisibility} setProfileVisibility={setProfileVisibility} connectionRequests={connectionRequests} setConnectionRequests={setConnectionRequests} projectInvitations={projectInvitations} setProjectInvitations={setProjectInvitations} onNotify={notify} />}
 
           {activePage === "Resources" && <section><SectionHeading title="Technical resources" description="Reference material, development templates and tools; availability shown per item." /><div className="mt-6 divide-y divide-border rounded-md border border-border bg-card">{resources.map((resource) => <div key={resource.name} className="flex items-center justify-between gap-3 p-4 md:p-5"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Database size={18} /></span><div className="min-w-0"><div className="text-sm font-semibold">{resource.name}</div><div className="mt-1 text-xs text-muted-foreground">{resource.type} · {resource.size}</div></div></div><span className={`shrink-0 text-right text-[10px] ${resource.local ? "text-primary" : "text-warning"}`}>{online ? resource.access : resource.local ? "Available locally · demo" : "Requires internet"}</span></div>)}</div><p className="mt-3 text-[10px] text-muted-foreground">Illustrative resource list · local availability is not verified against a real device.</p></section>}
 
@@ -245,11 +275,11 @@ function AcademyDashboard() {
         </div>
       </main>
 
-      {workspaceOpen && <Dialog title="Workspace preview" eyebrow="Personal engineering environment · Demo" onClose={() => setWorkspaceOpen(false)}><div className="flex items-center justify-between gap-3"><div><div className="text-sm font-semibold">Software Development Environment</div><div className="mt-1 text-xs text-muted-foreground">Personal device workflow · Preview only</div></div><span className="rounded-full bg-secondary px-3 py-1.5 text-[10px] text-secondary-foreground">Not connected</span></div><div className="mt-5 rounded-md bg-sidebar p-5 font-mono text-xs leading-7 text-primary-foreground"><div className="text-muted-foreground"># Illustrative terminal preview</div><div>$ node --version</div><div className="text-primary">v22.0.0</div><div>$ git status</div><div className="text-primary">Example workspace · no commands executed</div><div className="mt-2 text-primary">environment@qimuro:~$ <span className="animate-pulse">_</span></div></div><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-md border border-border p-3"><div className="text-xs text-muted-foreground">Access route</div><div className="mt-1 text-sm font-semibold">Your own device</div></div><div className="rounded-md border border-border p-3"><div className="text-xs text-muted-foreground">Demo state</div><div className="mt-1 text-sm font-semibold">Local-first example</div></div></div><div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck size={15} className="text-primary" />Simulated preview; no code runs and no computer is connected.</div><Button onClick={() => { setWorkspaceOpen(false); notify("Workspace preview closed. No device was connected."); }} className="mt-5 w-full">Close preview</Button></Dialog>}
+      {workspaceOpen && <Dialog title="Workspace preview" eyebrow="Personal engineering environment · Illustrative" onClose={() => setWorkspaceOpen(false)}><div className="flex items-center justify-between gap-3"><div><div className="text-sm font-semibold">Software Development Environment</div><div className="mt-1 text-xs text-muted-foreground">Personal device workflow · Preview only</div></div><span className="rounded-full bg-secondary px-3 py-1.5 text-[10px] text-secondary-foreground">Not connected</span></div><div className="mt-5 rounded-md bg-sidebar p-5 font-mono text-xs leading-7 text-primary-foreground"><div className="text-muted-foreground"># Illustrative terminal preview</div><div>$ node --version</div><div className="text-primary">v22.0.0</div><div>$ git status</div><div className="text-primary">Example workspace · no commands executed</div><div className="mt-2 text-primary">environment@qimuro:~$ <span className="animate-pulse">_</span></div></div><div className="mt-5 grid grid-cols-2 gap-3"><div className="rounded-md border border-border p-3"><div className="text-xs text-muted-foreground">Access route</div><div className="mt-1 text-sm font-semibold">Your own device</div></div><div className="rounded-md border border-border p-3"><div className="text-xs text-muted-foreground">Availability</div><div className="mt-1 text-sm font-semibold">Illustrative</div></div></div><div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground"><ShieldCheck size={15} className="text-primary" />Simulated preview; no code runs and no computer is connected.</div><Button onClick={() => { setWorkspaceOpen(false); notify("Workspace preview closed. No device was connected."); }} className="mt-5 w-full">Close preview</Button></Dialog>}
 
-      {selectedPathway && <Dialog title={selectedPathway.title} eyebrow="Practical engineering pathway" onClose={() => setSelectedPathway(null)}><p className="text-sm leading-6 text-muted-foreground">{selectedPathway.description}</p><div className="mt-5 rounded-md bg-secondary p-4"><div className="text-xs text-muted-foreground">Illustrative pathway structure</div><div className="mt-1 font-semibold">{selectedPathway.modules} practical modules</div><div className="mt-1 text-xs text-muted-foreground">{selectedPathway.level}</div></div><p className="mt-4 text-xs text-muted-foreground">Pathway content is a prototype example, not a live course.</p><Button onClick={() => { setSelectedPathway(null); setActivePage("Workspaces"); }} className="mt-5 w-full">Explore workspaces</Button></Dialog>}
+      {selectedPathway && <Dialog title={selectedPathway.title} eyebrow="Practical engineering pathway" onClose={() => setSelectedPathway(null)}><p className="text-sm leading-6 text-muted-foreground">{selectedPathway.description}</p><div className="mt-5 rounded-md bg-secondary p-4"><div className="text-xs text-muted-foreground">Illustrative pathway structure</div><div className="mt-1 font-semibold">{selectedPathway.modules} practical modules</div><div className="mt-1 text-xs text-muted-foreground">{selectedPathway.level}</div></div><p className="mt-4 text-xs text-muted-foreground">Pathway content is an illustrative placeholder.</p><Button onClick={() => { setSelectedPathway(null); setActivePage("My Workspace"); }} className="mt-5 w-full">Explore workspaces</Button></Dialog>}
 
-      {newProjectOpen && <Dialog title="Create a project" eyebrow="Personal project · Demo" onClose={() => setNewProjectOpen(false)}><label htmlFor="new-project-name" className="text-sm font-medium">Project name</label><input id="new-project-name" autoFocus value={newProjectName} onChange={(event) => setNewProjectName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") createProject(); }} placeholder="e.g. Water quality monitor" className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring" /><p className="mt-2 text-xs text-muted-foreground">This adds a sample project to this page only. It is not saved to an account.</p><Button onClick={createProject} className="mt-5 w-full"><Plus size={16} />Add demo project</Button></Dialog>}
+      {newProjectOpen && <Dialog title="Create a project" eyebrow="Personal project · Illustrative" onClose={() => setNewProjectOpen(false)}><label htmlFor="new-project-name" className="text-sm font-medium">Project name</label><input id="new-project-name" autoFocus value={newProjectName} onChange={(event) => setNewProjectName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") createProject(); }} placeholder="e.g. Water quality monitor" className="mt-2 h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring" /><p className="mt-2 text-xs text-muted-foreground">This adds a sample project to this page only. It is not saved to an account.</p><Button onClick={createProject} className="mt-5 w-full"><Plus size={16} />Add project</Button></Dialog>}
 
       {notification && <div role="status" className="fixed bottom-5 right-5 z-[90] flex max-w-[calc(100vw-2.5rem)] items-center gap-2 rounded-md bg-sidebar px-5 py-3 text-xs text-sidebar-foreground shadow-xl"><CheckCircle2 size={16} className="shrink-0 text-primary" />{notification}</div>}
     </div>
