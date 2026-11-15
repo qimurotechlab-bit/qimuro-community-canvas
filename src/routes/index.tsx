@@ -74,7 +74,11 @@ const sampleNotifications = [
   { id: "connection", title: "Connection request", detail: "Musa Otieno · Illustrative profile from Nairobi", read: false },
   { id: "task", title: "Task assigned", detail: "Review the crop image dataset · Sample project activity", read: true },
   { id: "sync", title: "Sync status", detail: "Local project changes are pending synchronization", read: true },
-];
+] as const;
+
+type NotificationItem = { id: string; title: string; detail: string; read: boolean };
+type ConnectionStatus = "Connect" | "Requested" | "Connected";
+type Collaborator = (typeof sampleCollaborators)[number];
 
 const navigation = [
   { label: "Dashboard", icon: LayoutDashboard },
@@ -147,7 +151,7 @@ function AcademyDashboard() {
   const [profileVisibility, setProfileVisibility] = useState(true);
   const [connectionRequests, setConnectionRequests] = useState(true);
   const [projectInvitations, setProjectInvitations] = useState(true);
-  const [notifications, setNotifications] = useState(sampleNotifications);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(sampleNotifications.map((item) => ({ ...item })));
 
   const notify = (message: string) => {
     setNotification(message);
@@ -185,7 +189,7 @@ function AcademyDashboard() {
   const selectAccess = (mode: AccessMode) => {
     setAccessMode(mode);
     const message = mode === "device"
-      ? "Personal device selected. This demo does not connect to your computer."
+      ? "Personal device selected. This preview does not connect to your computer."
       : mode === "node"
         ? "Node access is optional and illustrative; no node was connected."
         : "Shared computing is a proposed option, not a live service.";
@@ -219,11 +223,11 @@ function AcademyDashboard() {
         <div className="px-5 pb-3 pt-9 text-[10px] font-semibold uppercase text-muted-foreground">Access mode</div>
         <div className="mx-4 rounded-md border border-sidebar-border bg-sidebar-accent p-4">
           <div className="mb-3 flex items-center gap-2 text-xs font-semibold"><Terminal size={16} className="text-primary" />{accessMode === "device" ? "Your own device" : accessMode === "node" ? "Optional node access" : "Shared computing"}</div>
-          <div className="text-xs text-muted-foreground">{online ? "Local workspaces shown as a demo" : "Local access simulated · remote unavailable"}</div>
+          <div className="text-xs text-muted-foreground">{online ? "Illustrative local workspaces" : "Local access simulated · remote unavailable"}</div>
           <Button variant="outline" size="sm" onClick={() => setOnline(!online)} className="mt-4 w-full border-sidebar-border bg-transparent text-xs text-sidebar-foreground hover:bg-sidebar-accent">{online ? "Simulate internet outage" : "Restore connectivity"}</Button>
         </div>
         <div className="mt-auto border-t border-sidebar-border p-4">
-          <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">QA</div><div><div className="text-sm font-medium">Demo profile</div><div className="text-xs text-muted-foreground">Individual workspace</div></div></div>
+          <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">QA</div><div><div className="text-sm font-medium">Sample profile</div><div className="text-xs text-muted-foreground">Individual workspace</div></div></div>
         </div>
       </aside>
 
@@ -259,19 +263,19 @@ function AcademyDashboard() {
 
           {activePage === "Engineering Pathways" && <PathwaySection onSelect={setSelectedPathway} />}
 
-          {activePage === "Collaboration" && <CollaborationPage onNotify={notify} />}
+          {activePage === "Collaboration" && <CollaborationPage onNotify={notify} collaborationView={collaborationView} setCollaborationView={setCollaborationView} peopleQuery={peopleQuery} setPeopleQuery={setPeopleQuery} peopleFilter={peopleFilter} setPeopleFilter={setPeopleFilter} people={filteredPeople} connectionStatuses={connectionStatuses} onConnectionChange={(id, status) => setConnectionStatuses((current) => ({ ...current, [id]: status }))} joinRequested={joinRequested} setJoinRequested={setJoinRequested} joinAccepted={joinAccepted} setJoinAccepted={setJoinAccepted} projectInviteAccepted={projectInviteAccepted} setProjectInviteAccepted={setProjectInviteAccepted} projectVisibility={projectVisibility} setProjectVisibility={setProjectVisibility} sharedTaskDone={sharedTaskDone} setSharedTaskDone={setSharedTaskDone} discussion={discussion} setDiscussion={setDiscussion} discussionPosts={discussionPosts} setDiscussionPosts={setDiscussionPosts} />}
 
-          {activePage === "Notifications" && <NotificationsPage notifications={notifications} onMarkRead={(id) => setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item))} onMarkAllRead={() => setNotifications((current) => current.map((item) => ({ ...item, read: true })))} onNotify={notify} />}
+          {activePage === "Notifications" && <NotificationsPage notifications={notifications} onMarkRead={(id: string) => setNotifications((current) => current.map((item) => item.id === id ? { ...item, read: true } : item))} onMarkAllRead={() => setNotifications((current) => current.map((item) => ({ ...item, read: true })))} onNotify={notify} />}
 
           {activePage === "Settings" && <SettingsPage profileVisibility={profileVisibility} setProfileVisibility={setProfileVisibility} connectionRequests={connectionRequests} setConnectionRequests={setConnectionRequests} projectInvitations={projectInvitations} setProjectInvitations={setProjectInvitations} onNotify={notify} />}
 
-          {activePage === "Resources" && <section><SectionHeading title="Technical resources" description="Reference material, development templates and tools; availability shown per item." /><div className="mt-6 divide-y divide-border rounded-md border border-border bg-card">{resources.map((resource) => <div key={resource.name} className="flex items-center justify-between gap-3 p-4 md:p-5"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Database size={18} /></span><div className="min-w-0"><div className="text-sm font-semibold">{resource.name}</div><div className="mt-1 text-xs text-muted-foreground">{resource.type} · {resource.size}</div></div></div><span className={`shrink-0 text-right text-[10px] ${resource.local ? "text-primary" : "text-warning"}`}>{online ? resource.access : resource.local ? "Available locally · demo" : "Requires internet"}</span></div>)}</div><p className="mt-3 text-[10px] text-muted-foreground">Illustrative resource list · local availability is not verified against a real device.</p></section>}
+          {activePage === "Resources" && <section><SectionHeading title="Technical resources" description="Reference material, development templates and tools; availability shown per item." /><div className="mt-6 divide-y divide-border rounded-md border border-border bg-card">{resources.map((resource) => <div key={resource.name} className="flex items-center justify-between gap-3 p-4 md:p-5"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Database size={18} /></span><div className="min-w-0"><div className="text-sm font-semibold">{resource.name}</div><div className="mt-1 text-xs text-muted-foreground">{resource.type} · {resource.size}</div></div></div><span className={`shrink-0 text-right text-[10px] ${resource.local ? "text-primary" : "text-warning"}`}>{online ? resource.access : resource.local ? "Listed locally · illustrative" : "Requires internet"}</span></div>)}</div><p className="mt-3 text-[10px] text-muted-foreground">Illustrative resource list · local availability is not verified against a real device.</p></section>}
 
-          {activePage === "Infrastructure" && <section><SectionHeading title="Compute and infrastructure" description="Engineering environments can span personal devices and infrastructure provided by connected partners." /><div className="mt-6 grid gap-4 md:grid-cols-2">{[{ title: "Personal device", text: "Use your own computer and local development tools. Qimuro-hosted compute is not required.", state: "First-class access route", icon: Terminal }, { title: "Community infrastructure", text: "Shared devices and local environments through a community partner, where available.", state: "Optional · illustrative", icon: Network }, { title: "Institutional infrastructure", text: "An organization may connect its own environments for its teams.", state: "Concept demonstration", icon: Server }, { title: "Shared remote computing", text: "Additional remote resources may help when local hardware is insufficient.", state: "Proposed · not connected", icon: Cloud }].map(({ title, text, state, icon: Icon }) => <div key={title} className="rounded-md border border-border bg-card p-5"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={20} /></span><div><h2 className="text-sm font-semibold">{title}</h2><div className="mt-1 text-[10px] text-muted-foreground">{state}</div></div></div><p className="mt-4 text-sm leading-6 text-muted-foreground">{text}</p></div>)}</div><div className="mt-5 rounded-md bg-secondary p-5"><h2 className="text-sm font-semibold">Portable, local-first coordination</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Identity, environment portability and controlled synchronization are part of the broader product direction. They are not live services in this prototype.</p></div></section>}
+          {activePage === "Infrastructure" && <section><SectionHeading title="Compute and infrastructure" description="Engineering environments can span personal devices and infrastructure provided by connected partners." /><div className="mt-6 grid gap-4 md:grid-cols-2">{[{ title: "Personal device", text: "Use your own computer and local development tools. Qimuro-hosted compute is not required.", state: "First-class access route", icon: Terminal }, { title: "Community infrastructure", text: "Shared devices and local environments through a community partner, where available.", state: "Optional · illustrative", icon: Network }, { title: "Institutional infrastructure", text: "An organization may connect its own environments for its teams.", state: "Proposed concept", icon: Server }, { title: "Shared remote computing", text: "Additional remote resources may help when local hardware is insufficient.", state: "Proposed · not connected", icon: Cloud }].map(({ title, text, state, icon: Icon }) => <div key={title} className="rounded-md border border-border bg-card p-5"><div className="flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon size={20} /></span><div><h2 className="text-sm font-semibold">{title}</h2><div className="mt-1 text-[10px] text-muted-foreground">{state}</div></div></div><p className="mt-4 text-sm leading-6 text-muted-foreground">{text}</p></div>)}</div><div className="mt-5 rounded-md bg-secondary p-5"><h2 className="text-sm font-semibold">Portable, local-first coordination</h2><p className="mt-2 text-sm leading-6 text-muted-foreground">Identity, environment portability and controlled synchronization are part of the broader product direction. They are not live services in this preview.</p></div></section>}
 
           {activePage === "Network" && <NetworkSection nodes={visibleNodes} online={online} selectedNode={selectedNode} syncing={syncing} syncLabel={syncLabel} onSelect={(name) => { setSelectedNode(name); setAccessMode("node"); notify(`${name} is illustrative; no connection was made.`); }} onSync={handleSync} />}
 
-          <footer className="flex flex-col justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground sm:flex-row"><span>Qimuro Academy · Practical engineering across your own device and optional shared infrastructure.</span><span>Visual demo · Illustrative data · No live infrastructure connection</span></footer>
+          <footer className="flex flex-col justify-between gap-2 border-t border-border pt-5 text-[10px] text-muted-foreground sm:flex-row"><span>Qimuro Academy · Practical engineering across your own device and optional shared infrastructure.</span><span>Illustrative data · No live infrastructure connection</span></footer>
         </div>
       </main>
 
@@ -312,4 +316,98 @@ function NetworkSection({ nodes: pilotNodes, online, selectedNode, syncing, sync
 
 function Dialog({ title, eyebrow, onClose, children }: { title: string; eyebrow: string; onClose: () => void; children: React.ReactNode }) {
   return <div className="fixed inset-0 z-[70] flex items-center justify-center bg-foreground/60 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}><section role="dialog" aria-modal="true" aria-labelledby="dialog-title" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-md bg-card p-5 shadow-2xl md:p-6"><div className="mb-5 flex items-start justify-between gap-4"><div><div className="text-xs text-primary">{eyebrow}</div><h2 id="dialog-title" className="mt-1 text-lg font-semibold">{title}</h2></div><Button variant="ghost" size="icon" aria-label="Close dialog" onClick={onClose}><X /></Button></div>{children}</section></div>;
+}
+
+function ProjectsPage({ projects, search, setSearch, onCreate, onOpenCollaboration }: { projects: typeof initialProjects; search: string; setSearch: (value: string) => void; onCreate: () => void; onOpenCollaboration: () => void }) {
+  return <section><div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><SectionHeading title="My projects" description="Your personal project list. Changes on this page are temporary and stay in this browser view." /><Button variant="outline" onClick={onOpenCollaboration}><Users size={16} />Explore collaboration</Button></div><ProjectSection projects={projects} search={search} setSearch={setSearch} onCreate={onCreate} full /></section>;
+}
+
+function CollaborationPreview({ onView }: { onView: () => void }) {
+  return <section className="rounded-md border border-border bg-card p-5"><div className="flex items-center justify-between gap-3"><div><h2 className="text-base font-semibold">Distributed collaboration</h2><p className="mt-1 text-xs text-muted-foreground">Illustrative profiles from across Kenya</p></div><Users size={19} className="text-primary" /></div><div className="mt-4 grid gap-3 sm:grid-cols-2">{sampleCollaborators.slice(0, 2).map((person) => <div key={person.id} className="flex items-center justify-between gap-3 border-b border-border pb-3"><div><div className="text-sm font-semibold">{person.name}</div><div className="mt-1 text-xs text-muted-foreground">{person.role} · {person.location}</div></div><span className="text-[10px] text-muted-foreground">Sample profile</span></div>)}</div><Button variant="outline" size="sm" onClick={onView} className="mt-4">Explore collaboration<ArrowUpRight size={14} /></Button></section>;
+}
+
+function CollaborationPage({
+  onNotify,
+  collaborationView,
+  setCollaborationView,
+  peopleQuery,
+  setPeopleQuery,
+  peopleFilter,
+  setPeopleFilter,
+  people,
+  connectionStatuses,
+  onConnectionChange,
+  joinRequested,
+  setJoinRequested,
+  joinAccepted,
+  setJoinAccepted,
+  projectInviteAccepted,
+  setProjectInviteAccepted,
+  projectVisibility,
+  setProjectVisibility,
+  sharedTaskDone,
+  setSharedTaskDone,
+  discussion,
+  setDiscussion,
+  discussionPosts,
+  setDiscussionPosts,
+}: {
+  onNotify: (message: string) => void;
+  collaborationView: string;
+  setCollaborationView: (view: string) => void;
+  peopleQuery: string;
+  setPeopleQuery: (query: string) => void;
+  peopleFilter: string;
+  setPeopleFilter: (filter: string) => void;
+  people: Collaborator[];
+  connectionStatuses: Record<string, ConnectionStatus>;
+  onConnectionChange: (id: string, status: ConnectionStatus) => void;
+  joinRequested: boolean;
+  setJoinRequested: (value: boolean) => void;
+  joinAccepted: boolean;
+  setJoinAccepted: (value: boolean) => void;
+  projectInviteAccepted: boolean;
+  setProjectInviteAccepted: (value: boolean) => void;
+  projectVisibility: string;
+  setProjectVisibility: (value: string) => void;
+  sharedTaskDone: boolean;
+  setSharedTaskDone: (value: boolean) => void;
+  discussion: string;
+  setDiscussion: (value: string) => void;
+  discussionPosts: string[];
+  setDiscussionPosts: React.Dispatch<React.SetStateAction<string[]>>;
+}) {
+  const views = ["Discover people", "Projects", "Shared workspace"];
+  const submitDiscussion = () => {
+    const text = discussion.trim();
+    if (!text) return;
+    setDiscussionPosts((current) => [...current, `You: ${text}`]);
+    setDiscussion("");
+    onNotify("Message added to this illustrative discussion.");
+  };
+
+  return <section>
+    <SectionHeading title="Collaboration" description="Explore illustrative profiles, project invitations, and shared-workspace interactions." />
+    <div className="mt-5 flex flex-wrap gap-2 border-b border-border pb-3" role="tablist" aria-label="Collaboration views">{views.map((view) => <Button key={view} role="tab" aria-selected={collaborationView === view} variant={collaborationView === view ? "secondary" : "ghost"} size="sm" onClick={() => setCollaborationView(view)}>{view}</Button>)}</div>
+
+    {collaborationView === "Discover people" && <div className="mt-5"><div className="mb-4 flex flex-col gap-3 sm:flex-row"><div className="relative flex-1"><Search size={14} className="absolute left-3 top-2.5 text-muted-foreground" /><input aria-label="Search collaborators" value={peopleQuery} onChange={(event) => setPeopleQuery(event.target.value)} placeholder="Search names, skills, or places" className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring" /></div><input aria-label="Filter collaborators" value={peopleFilter} onChange={(event) => setPeopleFilter(event.target.value)} placeholder="Filter by skill or location" className="h-9 rounded-md border border-input bg-background px-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-64" /></div><p className="mb-4 text-xs text-muted-foreground">Illustrative profiles · no real accounts are connected.</p><div className="divide-y divide-border">{people.map((person) => { const status = connectionStatuses[person.id] ?? "Connect"; return <div key={person.id} className="flex flex-col justify-between gap-4 py-4 sm:flex-row sm:items-center"><div className="min-w-0"><div className="flex items-center gap-2"><h2 className="text-sm font-semibold">{person.name}</h2><span className="text-[10px] text-muted-foreground">{person.location}</span></div><p className="mt-1 text-xs text-muted-foreground">{person.role}</p><div className="mt-2 flex flex-wrap gap-2">{person.skills.map((skill) => <span key={skill} className="rounded-sm bg-secondary px-2 py-1 text-[10px] text-secondary-foreground">{skill}</span>)}</div></div><Button variant={status === "Connected" ? "secondary" : "outline"} size="sm" className="shrink-0" onClick={() => { const nextStatus: ConnectionStatus = status === "Connect" ? "Requested" : status === "Requested" ? "Connect" : "Connected"; onConnectionChange(person.id, nextStatus); onNotify(nextStatus === "Requested" ? `Connection request sent to ${person.name} in this preview.` : nextStatus === "Connect" ? "Connection request withdrawn." : "Already connected in this illustrative workspace."); }}>{status === "Connect" ? <><UserPlus size={14} />Connect</> : status === "Requested" ? "Requested" : <><CheckCircle2 size={14} />Connected</>}</Button></div>; })}{people.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No matching profiles.</p>}</div></div>}
+
+    {collaborationView === "Projects" && <div className="mt-5 grid gap-5 xl:grid-cols-2"><div className="space-y-5"><div className="border-b border-border pb-5"><div className="flex items-start justify-between gap-3"><div><h2 className="text-base font-semibold">Open Agricultural Intelligence Platform</h2><p className="mt-1 text-xs text-muted-foreground">Distributed project · sample activity</p></div><GitBranch size={18} className="text-primary" /></div><p className="mt-3 text-sm leading-6 text-muted-foreground">A sample collaboration space for exploring crop-image research, regional datasets, and practical AI engineering.</p><div className="mt-4 flex flex-wrap gap-2 text-[10px] text-muted-foreground"><span>Isiolo</span><span>· Mumias</span><span>· Nairobi</span><span>· Makueni</span></div><Button variant="outline" size="sm" className="mt-4" disabled={joinRequested || joinAccepted} onClick={() => { setJoinRequested(true); onNotify("Join request recorded in this preview."); }}>{joinAccepted ? "Project joined" : joinRequested ? "Request sent" : "Ask to join"}</Button></div><div><h3 className="text-sm font-semibold">Project invitation</h3><p className="mt-1 text-xs text-muted-foreground">Sample invitation · Open Agricultural Intelligence Platform</p><Button size="sm" className="mt-3" disabled={projectInviteAccepted} onClick={() => { setProjectInviteAccepted(true); onNotify("Illustrative project invitation accepted."); }}>{projectInviteAccepted ? <><CheckCircle2 size={14} />Accepted</> : "Accept invitation"}</Button></div></div><div className="border-t border-border pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0"><h2 className="text-sm font-semibold">Shared project</h2><p className="mt-1 text-xs text-muted-foreground">Illustrative team workspace · not a live collaboration service</p><div className="mt-4 space-y-3"><div className="flex items-start gap-3 border-b border-border pb-3"><FileCode2 size={16} className="mt-0.5 text-primary" /><div><div className="text-xs font-medium">Crop image evaluation set</div><div className="mt-1 text-[10px] text-muted-foreground">Sample file · not stored or uploaded</div></div></div><div className="flex items-center justify-between gap-3"><div><div className="text-xs font-medium">Review dataset labels</div><div className="mt-1 text-[10px] text-muted-foreground">Sample team task</div></div><Button variant={sharedTaskDone ? "secondary" : "outline"} size="sm" onClick={() => { setSharedTaskDone(!sharedTaskDone); onNotify(sharedTaskDone ? "Sample task reopened." : "Sample task marked complete."); }}>{sharedTaskDone ? "Completed" : "Mark complete"}</Button></div><label className="block pt-2 text-xs font-medium" htmlFor="project-visibility">Project visibility</label><select id="project-visibility" value={projectVisibility} onChange={(event) => setProjectVisibility(event.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-xs"><option>Public</option><option>Invite only</option><option>Private</option></select></div><Button variant="outline" size="sm" className="mt-4" onClick={() => setCollaborationView("Shared workspace")}>Open shared workspace<ArrowUpRight size={14} /></Button></div></div>}
+
+    {collaborationView === "Shared workspace" && <div className="mt-5"><div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><h2 className="text-base font-semibold">Open Agricultural Intelligence Platform</h2><p className="mt-1 text-xs text-muted-foreground">Illustrative team activity · changes are only shown in this page</p></div><div className="text-xs text-muted-foreground">Visibility: {projectVisibility}</div></div><div className="grid gap-6 xl:grid-cols-[1fr_1.3fr]"><div><h3 className="text-sm font-semibold">Shared files</h3><div className="mt-3 divide-y divide-border border-y border-border">{["Crop image evaluation set", "Model evaluation notes", "Regional sample checklist"].map((file) => <div key={file} className="flex items-center gap-3 py-3"><FileCode2 size={16} className="text-primary" /><div><div className="text-xs font-medium">{file}</div><div className="mt-1 text-[10px] text-muted-foreground">Illustrative file listing · not uploaded</div></div></div>)}</div><div className="mt-5 flex items-center justify-between gap-3 border-b border-border pb-3"><div><h3 className="text-sm font-semibold">Team task</h3><p className="mt-1 text-xs text-muted-foreground">Review the crop image dataset · sample activity</p></div><Button variant={sharedTaskDone ? "secondary" : "outline"} size="sm" onClick={() => setSharedTaskDone(!sharedTaskDone)}>{sharedTaskDone ? "Completed" : "Mark complete"}</Button></div></div><div><h3 className="text-sm font-semibold">Discussion</h3><div className="mt-3 space-y-3">{discussionPosts.map((post, index) => <p key={`${index}-${post}`} className="border-l-2 border-primary/40 pl-3 text-xs leading-5 text-muted-foreground">{post}</p>)}</div><div className="mt-4 flex gap-2"><input aria-label="Write a discussion message" value={discussion} onChange={(event) => setDiscussion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitDiscussion(); }} placeholder="Write a message" className="h-9 min-w-0 flex-1 rounded-md border border-input bg-background px-3 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring" /><Button aria-label="Post message" size="icon" onClick={submitDiscussion}><Send size={15} /></Button></div></div></div><p className="mt-6 text-[10px] text-muted-foreground">All people, files, tasks, and discussion entries on this page are illustrative; no messages or files are sent.</p></div>}
+  </section>;
+}
+
+function NotificationsPage({ notifications, onMarkRead, onMarkAllRead, onNotify }: { notifications: NotificationItem[]; onMarkRead: (id: string) => void; onMarkAllRead: () => void; onNotify: (message: string) => void }) {
+  const unread = notifications.filter((item) => !item.read).length;
+  return <section><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><SectionHeading title="Notifications" description="Sample project and account activity for this workspace." /><Button variant="outline" size="sm" disabled={unread === 0} onClick={() => { onMarkAllRead(); onNotify("All notifications marked as read."); }}>Mark all as read</Button></div><div className="mt-6 divide-y divide-border border-y border-border">{notifications.map((item) => <div key={item.id} className="flex flex-col justify-between gap-3 py-4 sm:flex-row sm:items-center"><div className="flex items-start gap-3"><span className={`mt-1.5 size-2 shrink-0 rounded-full ${item.read ? "bg-muted-foreground/40" : "bg-primary"}`} /><div><h2 className="text-sm font-semibold">{item.title}</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">{item.detail}</p></div></div>{item.read ? <span className="text-[10px] text-muted-foreground">Read</span> : <Button size="sm" variant="ghost" onClick={() => { onMarkRead(item.id); onNotify("Notification marked as read."); }}>Mark read</Button>}</div>)}{notifications.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">You’re all caught up.</p>}</div><p className="mt-4 text-[10px] text-muted-foreground">Illustrative notifications · no external messages are received.</p></section>;
+}
+
+function SettingsPage({ profileVisibility, setProfileVisibility, connectionRequests, setConnectionRequests, projectInvitations, setProjectInvitations, onNotify }: { profileVisibility: boolean; setProfileVisibility: React.Dispatch<React.SetStateAction<boolean>>; connectionRequests: boolean; setConnectionRequests: React.Dispatch<React.SetStateAction<boolean>>; projectInvitations: boolean; setProjectInvitations: React.Dispatch<React.SetStateAction<boolean>>; onNotify: (message: string) => void }) {
+  const settings = [
+    { title: "Discoverable profile", description: "Allow your profile to appear in collaborator search.", checked: profileVisibility, change: setProfileVisibility },
+    { title: "Connection requests", description: "Allow other members to request a connection.", checked: connectionRequests, change: setConnectionRequests },
+    { title: "Project invitations", description: "Allow project teams to send invitations.", checked: projectInvitations, change: setProjectInvitations },
+  ];
+  return <section><SectionHeading title="Settings" description="Privacy controls for the illustrative collaboration experience." /><div className="mt-6 max-w-3xl divide-y divide-border border-y border-border">{settings.map((setting) => <div key={setting.title} className="flex items-center justify-between gap-5 py-5"><div><h2 className="text-sm font-semibold">{setting.title}</h2><p className="mt-1 text-xs leading-5 text-muted-foreground">{setting.description}</p></div><Switch checked={setting.checked} aria-label={setting.title} onCheckedChange={(checked) => { setting.change(checked); onNotify(`${setting.title} ${checked ? "enabled" : "disabled"} in this preview.`); }} /></div>)}</div><p className="mt-4 text-[10px] text-muted-foreground">Preferences apply to this page view only and are not saved to an account.</p></section>;
 }
